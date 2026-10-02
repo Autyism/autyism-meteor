@@ -21,7 +21,8 @@ import java.util.List;
  */
 @SuppressWarnings("UnstableApiUsage")
 public final class ReleaseBindsGameTest implements FabricClientGameTest {
-    private static final int C = GLFW.GLFW_KEY_C, H = GLFW.GLFW_KEY_H, X = GLFW.GLFW_KEY_X, V = GLFW.GLFW_KEY_V, M = GLFW.GLFW_KEY_M;
+    // F13~F17：真实键盘一般没有，不会和用户实例里其它模组 / 原版的按键冲突（在真实实例里跑测试时很重要）
+    private static final int C = GLFW.GLFW_KEY_F13, H = GLFW.GLFW_KEY_F14, X = GLFW.GLFW_KEY_F15, V = GLFW.GLFW_KEY_F16, M = GLFW.GLFW_KEY_F17;
     private static final int MOUSE4 = GLFW.GLFW_MOUSE_BUTTON_4;
     private final List<String> failures = new ArrayList<>();
 
@@ -44,7 +45,7 @@ public final class ReleaseBindsGameTest implements FabricClientGameTest {
                 bind("no-slow", Keybind.fromButton(MOUSE4), false);
                 Macro macro = new Macro();
                 macro.name.set("am-test");
-                macro.messages.set(List.of(".toggle fast-climb"));
+                macro.messages.set(List.of(meteordevelopment.meteorclient.systems.config.Config.get().prefix.get() + "toggle fast-climb"));
                 macro.keybind.set(Keybind.fromKey(M));
                 Macros.get().add(macro);
             });
@@ -112,28 +113,28 @@ public final class ReleaseBindsGameTest implements FabricClientGameTest {
             check("Ctrl+H+X does not toggle Ctrl+X bind", !active(context, "safe-walk"));
             reset(context);
 
-            // 4) 走路（按住 W）时按 C 仍然触发；按住 C 时再按 W 也仍然触发
-            context.getInput().holdKey(GLFW.GLFW_KEY_W);
+            // 4) 走路（按住前进键）时按 C 仍然触发；按住 C 时再按前进键也仍然触发
+            context.getInput().holdKey(o -> o.keyUp);
             context.waitTicks(3);
             tap(context, C);
-            context.getInput().releaseKey(GLFW.GLFW_KEY_W);
+            context.getInput().releaseKey(o -> o.keyUp);
             context.waitTicks(3);
             check("W held + C toggles", active(context, "auto-respawn"));
             reset(context);
             context.getInput().holdKey(C);
             context.waitTicks(2);
-            context.getInput().holdKey(GLFW.GLFW_KEY_W);
+            context.getInput().holdKey(o -> o.keyUp);
             context.waitTicks(2);
-            context.getInput().releaseKey(GLFW.GLFW_KEY_W);
+            context.getInput().releaseKey(o -> o.keyUp);
             context.getInput().releaseKey(C);
             context.waitTicks(3);
             check("C held + W toggles", active(context, "auto-respawn"));
             reset(context);
             // 挖掘中（按住左键）按 C 也能触发
-            context.getInput().holdMouse(GLFW.GLFW_MOUSE_BUTTON_LEFT);
+            context.getInput().holdKey(o -> o.keyAttack);
             context.waitTicks(2);
             tap(context, C);
-            context.getInput().releaseMouse(GLFW.GLFW_MOUSE_BUTTON_LEFT);
+            context.getInput().releaseKey(o -> o.keyAttack);
             context.waitTicks(3);
             check("attack held + C toggles", active(context, "auto-respawn"));
             reset(context);
