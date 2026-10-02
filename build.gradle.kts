@@ -24,6 +24,8 @@ dependencies {
     compileOnly(files("libs/orbit-0.2.4.jar"))
     if (providers.gradleProperty("amGameTest").isPresent) {
         modLocalRuntime(files("libs/meteor-client-1.21.11-86.jar"))
+        // 开发环境不会展开 Meteor 的内嵌 jar：手动加到运行时（Fabric API 自己的模块除外）
+        modLocalRuntime(fileTree("libs/meteor-nested") { include("*.jar"); exclude("fabric-*.jar") })
     }
 }
 

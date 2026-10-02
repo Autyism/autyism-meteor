@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "autyism-meteor-gametest",
+  "version": "1.0.0",
+  "name": "Autyism Meteor GameTests",
+  "environment": "client",
+  "entrypoints": {
+    "fabric-client-gametest": ["com.autyism.meteor.gametest.ReleaseBindsGameTest"]
+  },
+  "depends": {"fabricloader": "*", "fabric-api": "*", "minecraft": "*", "autyism-meteor": "*"}
+}
