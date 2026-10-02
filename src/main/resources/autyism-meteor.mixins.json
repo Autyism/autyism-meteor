@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.autyism.meteor.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "KeyboardHandlerMixin",
+    "MouseHandlerMixin",
+    "ModulesMixin",
+    "MacrosMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
