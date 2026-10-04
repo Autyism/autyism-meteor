@@ -19,8 +19,9 @@ import java.util.Map;
  * 任何键都可以是前置键（不只是 Ctrl/Alt/Shift）：先按住 H 再按 C，C 的这次按下就带有前置键 H，
  * 同时 H 被标记为“当过前置键”，松开 H 时也不会触发 H 的绑定。
  * <p>
- * 例外（可在模块设置里关闭）：移动、跳跃、攻击、使用这些原版持续按住的键不算前置键，
- * 否则边走路边按热键就永远不会触发。Ctrl / Shift / Alt / Super 永远算前置键（它们就是组合键）。
+ * 例外（可在模块设置里关闭）：移动、跳跃、潜行、疾跑、攻击、使用这些原版持续按住的键不算前置键，
+ * 否则边走路边按热键就永远不会触发。Ctrl / Shift / Alt / Super 平时算修饰键；但如果玩的时候要一直按住它
+ * （比如按住 Shift 潜行），只有 Meteor 绑定本身写了这个修饰键时才算数，见 {@link #isMovementModifier}。
  * <p>
  * 键编码：键盘键 = GLFW 键码；鼠标键 = {@link #MOUSE_BASE} + 按钮号。
  */
@@ -34,6 +35,8 @@ public final class KeyTracker {
         public final List<Integer> otherPrefixes = new ArrayList<>();
         /** 按下时已按住的修饰键（Meteor 的 modifiers 位） */
         public int modifierMask;
+        /** 其中绑定在潜行、疾跑等原版持续按住的键上的修饰键（忽略移动键开启时才记录） */
+        public int movementModifierMask;
         /** 按下时有界面打开（比如关背包的 E），松开时不触发 */
         public boolean screenAtPress;
         /** 按住期间又按了别的键：这个键当了前置键，松开时不触发 */
@@ -77,11 +80,31 @@ public final class KeyTracker {
         };
     }
 
-    /** 不算前置键的原版“持续按住”键（修饰键除外） */
+    /** 不算前置键的原版“持续按住”键（修饰键另算，见 {@link #isMovementModifier}） */
     public static boolean isIgnored(int code) {
-        if (!ignoreMovementKeys || isModifierKey(code) || mc.options == null) return false;
-        KeyMapping[] keys = {mc.options.keyUp, mc.options.keyDown, mc.options.keyLeft, mc.options.keyRight,
-                mc.options.keyJump, mc.options.keyShift, mc.options.keySprint, mc.options.keyAttack, mc.options.keyUse};
+        return ignoreMovementKeys && !isModifierKey(code) && isMovementBound(code);
+    }
+
+    /**
+     * 玩的时候一直按住的修饰键：比如按住 Shift 潜行、按住 Ctrl 疾跑。潜行 / 疾跑设成“切换”时这个键只是点一下，
+     * 按住它多半是在按组合键，所以照常算修饰键。
+     */
+    public static boolean isMovementModifier(int code) {
+        if (!ignoreMovementKeys || !isModifierKey(code) || mc.options == null) return false;
+        List<KeyMapping> held = new ArrayList<>(List.of(mc.options.keyUp, mc.options.keyDown, mc.options.keyLeft, mc.options.keyRight,
+                mc.options.keyJump, mc.options.keyAttack, mc.options.keyUse));
+        if (!mc.options.toggleCrouch().get()) held.add(mc.options.keyShift);
+        if (!mc.options.toggleSprint().get()) held.add(mc.options.keySprint);
+        return boundTo(code, held);
+    }
+
+    private static boolean isMovementBound(int code) {
+        if (mc.options == null) return false;
+        return boundTo(code, List.of(mc.options.keyUp, mc.options.keyDown, mc.options.keyLeft, mc.options.keyRight,
+                mc.options.keyJump, mc.options.keyShift, mc.options.keySprint, mc.options.keyAttack, mc.options.keyUse));
+    }
+
+    private static boolean boundTo(int code, List<KeyMapping> keys) {
         for (KeyMapping k : keys) {
             InputConstants.Key bound = KeyBindingHelper.getBoundKeyOf(k);
             int c = bound.getType() == InputConstants.Type.MOUSE ? MOUSE_BASE + bound.getValue() : bound.getValue();
@@ -100,8 +123,12 @@ public final class KeyTracker {
         for (Map.Entry<Integer, Hold> e : HELD.entrySet()) {
             int other = e.getKey();
             if (isIgnored(other)) continue;
-            if (isModifierKey(other)) hold.modifierMask |= modifierBit(other);
-            else hold.otherPrefixes.add(other);
+            if (isModifierKey(other)) {
+                hold.modifierMask |= modifierBit(other);
+                if (isMovementModifier(other)) hold.movementModifierMask |= modifierBit(other);
+            } else {
+                hold.otherPrefixes.add(other);
+            }
             if (!ignored) e.getValue().usedAsPrefix = true;
         }
         HELD.put(code, hold);

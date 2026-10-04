@@ -1,6 +1,7 @@
 package com.autyism.meteor.gametest;
 
 import com.autyism.meteor.modules.ReleaseBinds;
+import meteordevelopment.meteorclient.settings.Setting;
 import meteordevelopment.meteorclient.systems.macros.Macro;
 import meteordevelopment.meteorclient.systems.macros.Macros;
 import meteordevelopment.meteorclient.systems.modules.Module;
@@ -86,13 +87,22 @@ public final class ReleaseBindsGameTest implements FabricClientGameTest {
             check("H alone toggles", active(context, "anti-hunger"));
             reset(context);
 
-            // 3) Ctrl+C 不触发 C；Ctrl+X 触发 Ctrl+X 绑定；单独 X 不触发 Ctrl+X 绑定
+            // 3) 修饰键。左 Ctrl 是原版默认的疾跑键：按住它不挡单键绑定；不是疾跑键的右 Ctrl 仍然算修饰键。
+            //    Ctrl+X 触发 Ctrl+X 绑定；单独 X 不触发 Ctrl+X 绑定
             context.getInput().holdControl();
             context.waitTicks(2);
             tap(context, C);
             context.getInput().releaseControl();
             context.waitTicks(3);
-            check("Ctrl+C does not toggle C bind", !active(context, "auto-respawn"));
+            check("sprint Ctrl + C toggles C bind", active(context, "auto-respawn"));
+            reset(context);
+            context.getInput().holdKey(GLFW.GLFW_KEY_RIGHT_CONTROL);
+            context.waitTicks(2);
+            tap(context, C);
+            context.getInput().releaseKey(GLFW.GLFW_KEY_RIGHT_CONTROL);
+            context.waitTicks(3);
+            check("right Ctrl (not the sprint key) + C does not toggle C bind", !active(context, "auto-respawn"));
+            reset(context);
             context.getInput().holdControl();
             context.waitTicks(2);
             tap(context, X);
@@ -111,6 +121,46 @@ public final class ReleaseBindsGameTest implements FabricClientGameTest {
             context.getInput().releaseControl();
             context.waitTicks(3);
             check("Ctrl+H+X does not toggle Ctrl+X bind", !active(context, "safe-walk"));
+            reset(context);
+
+            // 3b) 同一个键上既有 C 又有 Ctrl+C：按住疾跑用的 Ctrl 再按 C，只触发 Ctrl+C
+            context.runOnClient(c -> bind("auto-reconnect", Keybind.fromKeys(C, GLFW.GLFW_MOD_CONTROL), false));
+            context.getInput().holdControl();
+            context.waitTicks(2);
+            tap(context, C);
+            context.getInput().releaseControl();
+            context.waitTicks(3);
+            check("sprint Ctrl + C with a Ctrl+C bind toggles the Ctrl+C bind", active(context, "auto-reconnect"));
+            check("sprint Ctrl + C with a Ctrl+C bind leaves the C bind alone", !active(context, "auto-respawn"));
+            context.runOnClient(c -> Modules.get().get("auto-reconnect").keybind.set(Keybind.none()));
+            reset(context);
+
+            // 3c) 潜行用的 Shift（原版默认左 Shift）：按住它按 C 照样触发；关掉“忽略移动键”后恢复为修饰键
+            context.getInput().holdKey(o -> o.keyShift);
+            context.waitTicks(2);
+            tap(context, C);
+            context.getInput().releaseKey(o -> o.keyShift);
+            context.waitTicks(3);
+            check("sneak Shift + C toggles C bind", active(context, "auto-respawn"));
+            reset(context);
+            setIgnoreMovement(context, false);
+            context.getInput().holdKey(o -> o.keyShift);
+            context.waitTicks(2);
+            tap(context, C);
+            context.getInput().releaseKey(o -> o.keyShift);
+            context.waitTicks(3);
+            check("ignore-movement-keys off: sneak Shift + C does not toggle C bind", !active(context, "auto-respawn"));
+            setIgnoreMovement(context, true);
+            reset(context);
+            // 疾跑设成“切换”时，Ctrl 只是点一下，按住它就是在按组合键：照常算修饰键
+            context.runOnClient(c -> c.options.toggleSprint().set(true));
+            context.getInput().holdControl();
+            context.waitTicks(2);
+            tap(context, C);
+            context.getInput().releaseControl();
+            context.waitTicks(3);
+            check("toggle sprint: Ctrl + C does not toggle C bind", !active(context, "auto-respawn"));
+            context.runOnClient(c -> c.options.toggleSprint().set(false));
             reset(context);
 
             // 4) 走路（按住前进键）时按 C 仍然触发；按住 C 时再按前进键也仍然触发
@@ -249,9 +299,15 @@ public final class ReleaseBindsGameTest implements FabricClientGameTest {
         return context.computeOnClient(c -> Modules.get().get(name).isActive());
     }
 
+    @SuppressWarnings("unchecked")
+    private static void setIgnoreMovement(ClientGameTestContext context, boolean value) {
+        context.runOnClient(c -> ((Setting<Boolean>) Modules.get().get(ReleaseBinds.class).settings.get("ignore-movement-keys")).set(value));
+        context.waitTicks(1);
+    }
+
     private static void reset(ClientGameTestContext context) {
         context.runOnClient(c -> {
-            for (String n : new String[]{"auto-respawn", "anti-hunger", "safe-walk", "no-fall", "no-slow", "fast-climb"}) {
+            for (String n : new String[]{"auto-respawn", "anti-hunger", "safe-walk", "no-fall", "no-slow", "fast-climb", "auto-reconnect"}) {
                 Module m = Modules.get().get(n);
                 if (m.isActive()) m.toggle();
             }

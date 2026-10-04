@@ -11,7 +11,9 @@ import meteordevelopment.meteorclient.systems.modules.Modules;
 import meteordevelopment.meteorclient.utils.misc.Keybind;
 import net.minecraft.client.Minecraft;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * 松开触发 + 前置键屏蔽：
@@ -41,7 +43,7 @@ public class ReleaseBinds extends Module {
 
     private final Setting<Boolean> ignoreMovement = sgGeneral.add(new BoolSetting.Builder()
             .name("ignore-movement-keys")
-            .description("Movement, jump, sneak, sprint, attack and use keys never count as a prefix key, so binds still work while walking or mining. Ctrl/Shift/Alt/Super always count.")
+            .description("Movement, jump, sneak, sprint, attack and use keys never count as a prefix key, so binds still work while walking or mining. A Shift or Ctrl you hold down to sneak or sprint only counts for binds that include it.")
             .defaultValue(true)
             .build());
 
@@ -73,10 +75,26 @@ public class ReleaseBinds extends Module {
         return bind.isSet() && bind.isKey() == isKey && bind.getValue() == value;
     }
 
-    /** 这次按下对这个绑定来说是不是“干净的”：没有别的前置键，修饰键与绑定完全一致，按下时没开界面 */
-    public static boolean cleanFor(Keybind bind, KeyTracker.Hold hold) {
+    /**
+     * 这次按下对这个绑定来说是不是“干净的”：没有别的前置键，修饰键与绑定一致，按下时没开界面。
+     * {@code relaxed}：绑定没写的、绑在潜行 / 疾跑上的修饰键不算，比如按住 Shift 潜行时单键绑定照样触发。
+     */
+    public static boolean cleanFor(Keybind bind, KeyTracker.Hold hold, boolean relaxed) {
+        if (!hold.otherPrefixes.isEmpty() || hold.screenAtPress) return false;
         int mods = bind.hasMods() ? ((KeybindAccessor) (Object) bind).am$getModifiers() : 0;
-        return hold.otherPrefixes.isEmpty() && hold.modifierMask == mods && !hold.screenAtPress;
+        if (hold.modifierMask == mods) return true;
+        return relaxed && (hold.modifierMask & ~(hold.movementModifierMask & ~mods)) == mods;
+    }
+
+    /**
+     * 同一个键上有和按住的修饰键完全一致的绑定（比如按住 Shift 时的 Shift+R）就只触发它们，
+     * 没有时才忽略潜行 / 疾跑用的修饰键：组合键和单键仍然不会一起触发。
+     */
+    public static boolean relaxFor(Iterable<Keybind> binds, boolean isKey, int value, KeyTracker.Hold hold) {
+        for (Keybind bind : binds) {
+            if (sameKey(bind, isKey, value) && cleanFor(bind, hold, false)) return false;
+        }
+        return true;
     }
 
     /** 替代 Modules.onAction */
@@ -87,15 +105,19 @@ public class ReleaseBinds extends Module {
         KeyTracker.Hold hold = KeyTracker.get(code);
         if (hold == null) return;
         boolean noScreen = Minecraft.getInstance().screen == null;
-        for (Module module : all.toArray(new Module[0])) {
+        Module[] modules = all.toArray(new Module[0]);
+        List<Keybind> binds = new ArrayList<>();
+        for (Module module : modules) binds.add(module.keybind);
+        boolean relaxed = relaxFor(binds, isKey, value, hold);
+        for (Module module : modules) {
             if (!sameKey(module.keybind, isKey, value)) continue;
             if (module.toggleOnBindRelease) {
                 if (isPress) {
-                    if (noScreen && !module.isActive() && cleanFor(module.keybind, hold)) toggle(module);
+                    if (noScreen && !module.isActive() && cleanFor(module.keybind, hold, relaxed)) toggle(module);
                 } else if (module.isActive()) {
                     toggle(module);
                 }
-            } else if (!isPress && noScreen && !hold.usedAsPrefix && cleanFor(module.keybind, hold)) {
+            } else if (!isPress && noScreen && !hold.usedAsPrefix && cleanFor(module.keybind, hold, relaxed)) {
                 toggle(module);
             }
         }

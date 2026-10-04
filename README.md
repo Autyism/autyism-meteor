@@ -11,13 +11,13 @@
 
 An addon for [Meteor Client](https://meteorclient.com) that changes when Meteor's module and macro keybinds fire. It adds one module, **Release Binds**: a bind fires when you *release* its key, and not at all if another key was already held when you pressed it. Key combinations meant for other mods stop toggling your Meteor modules by accident.
 
-**The problem.** Meteor reacts the moment a bind's key goes down, and a bind on a single key also fires while you are holding other keys. Say a Meteor module is bound to `C`, and another mod uses `Ctrl + C`, or "hold `H`, then press `C`", for one of its own actions. Every time you use that combination, the Meteor module toggles as well. If `H` is also a Meteor bind, that module toggles as soon as you press `H`, before you have even reached `C`.
+**The problem.** Meteor reacts the moment a bind's key goes down, and a bind on a single key also fires while you are holding other keys. Say a Meteor module is bound to `C`, and another mod uses `Alt + C`, or "hold `H`, then press `C`", for one of its own actions. Every time you use that combination, the Meteor module toggles as well. If `H` is also a Meteor bind, that module toggles as soon as you press `H`, before you have even reached `C`.
 
 **With Release Binds on:**
 
 - Tap `C` on its own: the module toggles when you let go.
 - Hold `H`, press `C`, let go in any order: nothing toggles. `C` was pressed while `H` was held, and `H` was used as the first key of a combination.
-- Hold `Ctrl`, press `C`: the plain `C` bind stays quiet. A Meteor bind set to `Ctrl + C` fires instead.
+- Hold `Alt`, press `C`: the plain `C` bind stays quiet. A Meteor bind set to `Alt + C` fires instead.
 
 The other mod still receives every key as usual. Release Binds never blocks a key; it only decides when Meteor reacts.
 
@@ -34,7 +34,7 @@ The other mod still receives every key as usual. Release Binds never blocks a ke
 - **Any key can be a prefix.** If another key was held when you pressed a bind's key, the bind does not fire. This is not limited to Ctrl, Shift and Alt: letters, numbers, function keys and mouse buttons count as well.
 - **The first key of a combination stays quiet too.** If you press another key while still holding a bind's key, that bind does not fire when you let go. With `H` then `C`, neither the `H` bind nor the `C` bind fires.
 - **Exact modifiers.** A bind with modifiers, such as `Ctrl + X`, fires only when exactly those modifier keys are held and no other key. A plain `C` bind and a `Ctrl + C` bind can now sit side by side without both firing.
-- **Walking and mining don't get in the way.** The keys bound to moving, jumping, sneaking, sprinting, attacking and using items don't count as prefix keys, so binds still fire while you walk or hold the mouse button to mine. This follows your current Minecraft controls and can be turned off. Ctrl, Shift, Alt and Super are the exception: they always count, even when one of them is your sneak or sprint key.
+- **Walking, sneaking and mining don't get in the way.** The keys bound to moving, jumping, sneaking, sprinting, attacking and using items don't count as prefix keys, so binds still fire while you walk, sneak or hold the mouse button to mine. A Shift or Ctrl that you hold down to sneak or sprint only matters for binds that include it, such as `Shift + C`; with Sneak or Sprint set to "Toggle", that key is a normal modifier again. This follows your current Minecraft controls and can be turned off.
 
 ### What it covers
 
@@ -118,7 +118,7 @@ Open them with Right Shift → **Misc** → right-click **Release Binds**, or wi
 | Release Binds (the module itself) | `release-binds` | On (switched on at first start) | Turns the addon's behaviour on or off. When it is off, Meteor handles keys the normal way. |
 | Module Binds | `module-binds` | On | Applies the release and prefix rules to module keybinds. |
 | Macro Binds | `macro-binds` | On | Applies the release and prefix rules to macro keybinds. |
-| Ignore Movement Keys | `ignore-movement-keys` | On | The keys bound to moving, jumping, sneaking, sprinting, attacking and using never count as prefix keys, so binds still fire while you walk or mine. Ctrl, Shift, Alt and Super (the Windows or Command key) always count, even when one of them is your sneak or sprint key. Turn this off to make every held key count. |
+| Ignore Movement Keys | `ignore-movement-keys` | On | The keys bound to moving, jumping, sneaking, sprinting, attacking and using never count as prefix keys, so binds still fire while you walk, sneak or mine. A Shift, Ctrl, Alt or Super key that you hold down to sneak or sprint only counts for binds that include it; with Sneak or Sprint set to "Toggle" it counts as usual. Turn this off to make every held key count. |
 
 ## Requirements
 
@@ -151,9 +151,9 @@ Open them with Right Shift → **Misc** → right-click **Release Binds**, or wi
 
 Yes. Only once you let go can the addon tell a single tap from the start of a key combination.
 
-**A bind does nothing while I sneak or sprint.**
+**Do binds work while I sneak or sprint?**
 
-Ctrl, Shift, Alt and Super always count as prefix keys, even when they are your sneak or sprint keys (Minecraft's defaults are Left Shift for sneak and Left Ctrl for sprint). Let go of them before tapping the bind, or set Sneak or Sprint to "Toggle" in Minecraft's controls so you don't have to hold the key.
+Yes, while Ignore Movement Keys is on: a Shift or Ctrl that you hold down to sneak or sprint doesn't block binds. Only binds that include that key, such as `Shift + C`, need it. If Sneak or Sprint is set to "Toggle" in Minecraft's controls, you only tap that key, so holding it counts as the start of a key combination again.
 
 **I used a key combination and my Meteor module did not toggle.**
 
@@ -186,7 +186,7 @@ No. It is client-only and sends nothing to the server.
 ## Known limitations
 
 - Binds react when you release the key, so they fire a moment later than with Meteor's default behaviour. Modules with *Toggle on bind release* still turn on as soon as you press the key.
-- Ctrl, Shift, Alt and Super always count as prefix keys. With Minecraft's default controls (sneak on Left Shift, sprint on Left Ctrl), a bind only fires while you hold the sneak or sprint key if it includes that key as a modifier (such as `Shift + C`).
+- While you hold your sneak or sprint key (Left Shift and Left Ctrl by default), a plain bind fires even if another mod uses that key in a combination, for example `Ctrl + C` with Ctrl as the sprint key. If that gets in the way, set Sneak or Sprint to "Toggle", or bind the Meteor module to the combination itself.
 - Any other held key blocks a bind, apart from the keys bound to moving, jumping, sneaking, sprinting, attacking and using. For example, holding the player list key or another mod's hold-to-use key (such as a zoom key) keeps binds from firing while it is held.
 - Holding a macro key does not repeat the macro. It runs once each time you release the key.
 - Built against Meteor Client 1.21.11 build 86. Later Meteor builds may need an update of this addon.
@@ -204,13 +204,13 @@ GPL-3.0-or-later: this addon is free software under the GNU General Public Licen
 
 这是一个 [Meteor Client](https://meteorclient.com) 插件（addon），用来改变 Meteor 模块和宏的快捷键触发方式。它只添加一个模块 **Release Binds**：快捷键在**松开**时才触发；如果按下它时已经按住了别的键，就完全不触发。这样，给其他模组用的组合键就不会再顺手把 Meteor 模块开开关关。
 
-**问题在哪。** Meteor 在快捷键按下的一瞬间就触发，而且只绑了一个键的快捷键，在你按住别的键时也照样触发。假设你把某个 Meteor 模块绑在 `C` 上，而另一个模组的某个功能用的是 `Ctrl + C`，或者“按住 `H` 再按 `C`”。每次你用这个组合键，Meteor 模块都会跟着切换。如果 `H` 也绑了 Meteor 模块，那个模块在你按下 `H` 的一瞬间就切换了，你还没来得及按 `C`。
+**问题在哪。** Meteor 在快捷键按下的一瞬间就触发，而且只绑了一个键的快捷键，在你按住别的键时也照样触发。假设你把某个 Meteor 模块绑在 `C` 上，而另一个模组的某个功能用的是 `Alt + C`，或者“按住 `H` 再按 `C`”。每次你用这个组合键，Meteor 模块都会跟着切换。如果 `H` 也绑了 Meteor 模块，那个模块在你按下 `H` 的一瞬间就切换了，你还没来得及按 `C`。
 
 **开启 Release Binds 后：**
 
 - 单独点一下 `C`：松开时模块切换。
 - 按住 `H`，再按 `C`，然后以任意顺序松开：什么都不切换。`C` 是在按住 `H` 时按下的，而 `H` 当了组合键的前置键。
-- 按住 `Ctrl` 再按 `C`：只绑了 `C` 的快捷键不触发；如果你在 Meteor 里绑了 `Ctrl + C`，触发的是它。
+- 按住 `Alt` 再按 `C`：只绑了 `C` 的快捷键不触发；如果你在 Meteor 里绑了 `Alt + C`，触发的是它。
 
 另一个模组照常收到所有按键。Release Binds 从不拦截按键，只决定 Meteor 什么时候响应。
 
@@ -227,7 +227,7 @@ GPL-3.0-or-later: this addon is free software under the GNU General Public Licen
 - **任何键都能当前置键。** 按下快捷键时，只要已经按住了别的键，这个快捷键就不触发。不只是 Ctrl、Shift、Alt：字母、数字、F 键和鼠标按键都算。
 - **组合键的第一个键也不会触发。** 按住某个快捷键期间又按了别的键，松开时这个快捷键不会触发。先按 `H` 再按 `C`，`H` 和 `C` 的快捷键都不触发。
 - **修饰键精确匹配。** 带修饰键的快捷键（如 `Ctrl + X`）只有在按住的修饰键正好是这几个、并且没有按住其他键时才触发。只绑 `C` 的快捷键和 `Ctrl + C` 的快捷键现在可以并存，不会一起触发。
-- **走路、挖掘不受影响。** 绑在移动、跳跃、潜行、疾跑、攻击、使用上的键不算前置键，所以边走路、边按住鼠标挖方块也能正常用快捷键。它会跟着你当前的原版键位设置走，也可以关掉。例外是 Ctrl、Shift、Alt 和 Super：它们永远算前置键，哪怕是你的潜行或疾跑键。
+- **走路、潜行、挖掘不受影响。** 绑在移动、跳跃、潜行、疾跑、攻击、使用上的键不算前置键，所以边走路、边潜行、边按住鼠标挖方块也能正常用快捷键。如果你是按住 Shift 或 Ctrl 来潜行或疾跑，按住它只影响写了这个键的快捷键（如 `Shift + C`）；潜行或疾跑设成“切换”时，这个键照常算修饰键。它会跟着你当前的原版键位设置走，也可以关掉。
 
 ### 适用范围
 
@@ -311,7 +311,7 @@ Meteor 自带的命令可以直接用于 Release Binds（Meteor 默认命令前�
 | Release Binds（模块本身） | `release-binds` | 开（首次启动时自动开启） | 总开关。关闭时 Meteor 按原本的方式处理按键。 |
 | Module Binds | `module-binds` | 开 | 对模块快捷键使用松开触发和前置键规则。 |
 | Macro Binds | `macro-binds` | 开 | 对宏快捷键使用松开触发和前置键规则。 |
-| Ignore Movement Keys | `ignore-movement-keys` | 开 | 绑在移动、跳跃、潜行、疾跑、攻击、使用上的键不算前置键，边走路、边挖掘也能用快捷键。Ctrl、Shift、Alt 和 Super（Windows 键 / Command 键）永远算前置键，哪怕是你的潜行或疾跑键。关闭后，按住任何键都算前置键。 |
+| Ignore Movement Keys | `ignore-movement-keys` | 开 | 绑在移动、跳跃、潜行、疾跑、攻击、使用上的键不算前置键，边走路、边潜行、边挖掘也能用快捷键。按住用来潜行或疾跑的 Shift、Ctrl、Alt 或 Super，只对写了这个键的快捷键算数；潜行或疾跑设成“切换”时照常算修饰键。关闭后，按住任何键都算前置键。 |
 
 ## 前置要求
 
@@ -344,9 +344,9 @@ Meteor 自带的命令可以直接用于 Release Binds（Meteor 默认命令前�
 
 正常。只有等你松开，插件才能分辨这是单独点一下，还是组合键的开头。
 
-**潜行或疾跑时快捷键没反应。**
+**潜行或疾跑时还能用快捷键吗？**
 
-Ctrl、Shift、Alt 和 Super 永远算前置键，哪怕是你的潜行或疾跑键（原版默认潜行是左 Shift，疾跑是左 Ctrl）。先松开它们再按快捷键，或者在原版控制设置里把潜行 / 疾跑改成“切换”模式，就不用一直按住了。
+能，只要 Ignore Movement Keys 开着：按住用来潜行或疾跑的 Shift、Ctrl 不会挡住快捷键，只有写了这个键的快捷键（如 `Shift + C`）才需要它。如果你在原版控制设置里把潜行或疾跑设成“切换”，平时只是点一下这个键，所以按住它又会被当成组合键的开头。
 
 **我按了组合键，Meteor 模块没切换。**
 
@@ -379,7 +379,7 @@ Ctrl、Shift、Alt 和 Super 永远算前置键，哪怕是你的潜行或疾跑
 ## 已知限制
 
 - 快捷键在松开时才响应，所以会比 Meteor 默认的按下触发稍晚一点。开了 *Toggle on bind release* 的模块仍然是一按下就开启。
-- Ctrl、Shift、Alt 和 Super 永远算前置键。在原版默认键位下（潜行是左 Shift，疾跑是左 Ctrl），按住潜行或疾跑键时，只有把这个键作为修饰键绑进去的快捷键（如 `Shift + C`）才会触发。
+- 按住潜行或疾跑键时（原版默认是左 Shift 和左 Ctrl），即使另一个模组把这个键用在组合键里（比如疾跑键是 Ctrl 时的 `Ctrl + C`），只绑了一个键的快捷键也会触发。如果这样碍事，就把潜行或疾跑设成“切换”，或者直接把 Meteor 模块绑在这个组合键上。
 - 除了绑在移动、跳跃、潜行、疾跑、攻击、使用上的键，按住任何其他键都会挡住快捷键。例如按住玩家列表键，或其他模组需要按住的键（比如缩放键）时，快捷键不会触发。
 - 按住宏的按键不会重复运行宏，每次松开只运行一次。
 - 基于 Meteor Client 1.21.11 build 86 构建，以后的 Meteor 版本可能需要更新本插件。

@@ -14,7 +14,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import meteordevelopment.meteorclient.utils.misc.Keybind;
 
 /**
  * Meteor 宏：同样改成松开触发 + 前置键屏蔽。
@@ -48,9 +51,13 @@ public abstract class MacrosMixin {
         KeyTracker.release(code);
         KeyTracker.Hold hold = KeyTracker.get(code);
         if (hold == null || hold.usedAsPrefix || Minecraft.getInstance().screen != null) return;
-        for (Macro macro : macros.toArray(new Macro[0])) {
+        Macro[] all = macros.toArray(new Macro[0]);
+        List<Keybind> binds = new ArrayList<>();
+        for (Macro macro : all) binds.add(macro.keybind.get());
+        boolean relaxed = ReleaseBinds.relaxFor(binds, isKey, value, hold);
+        for (Macro macro : all) {
             var bind = macro.keybind.get();
-            if (ReleaseBinds.sameKey(bind, isKey, value) && ReleaseBinds.cleanFor(bind, hold) && macro.onAction()) return;
+            if (ReleaseBinds.sameKey(bind, isKey, value) && ReleaseBinds.cleanFor(bind, hold, relaxed) && macro.onAction()) return;
         }
     }
 }
