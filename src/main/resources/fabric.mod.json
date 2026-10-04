@@ -3,16 +3,29 @@
   "id": "${mod_id}",
   "version": "${mod_version}",
   "name": "${mod_name}",
-  "icon": "assets/autyism-meteor/icon.png",
-  "description": "Autyism's Meteor Client addon. Release Binds: module and macro keybinds fire when the key is released, and never when another key was held first (any key acts as a prefix, e.g. H+C triggers neither H nor C).",
-  "authors": ["Autyism"],
+  "description": "Adds the Release Binds module to Meteor Client: module and macro keybinds fire when you release the key, and not at all if another key was already held when you pressed it. Key combinations meant for other mods no longer toggle Meteor modules.",
+  "authors": [
+    "Autyism"
+  ],
+  "contact": {
+    "homepage": "https://github.com/Autyism/autyism-meteor",
+    "sources": "https://github.com/Autyism/autyism-meteor",
+    "issues": "https://github.com/Autyism/autyism-meteor/issues"
+  },
   "license": "GPL-3.0-or-later",
+  "icon": "assets/autyism-meteor/icon.png",
   "environment": "client",
   "entrypoints": {
-    "meteor": ["com.autyism.meteor.AutyismMeteorAddon"],
-    "client": ["com.autyism.meteor.AutyismMeteorClient"]
+    "meteor": [
+      "com.autyism.meteor.AutyismMeteorAddon"
+    ],
+    "client": [
+      "com.autyism.meteor.AutyismMeteorClient"
+    ]
   },
-  "mixins": ["autyism-meteor.mixins.json"],
+  "mixins": [
+    "autyism-meteor.mixins.json"
+  ],
   "depends": {
     "fabricloader": ">=0.17.0",
     "minecraft": "${minecraft_version}",

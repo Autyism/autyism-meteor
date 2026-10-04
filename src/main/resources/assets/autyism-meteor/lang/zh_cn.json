@@ -1,0 +1,4 @@
+{
+  "modmenu.nameTranslation.autyism-meteor": "Autyism 的 Meteor 插件",
+  "modmenu.descriptionTranslation.autyism-meteor": "为 Meteor Client 添加 Release Binds 模块：模块和宏的快捷键在松开按键时才触发；按下时已经按住了其他任意键就不触发。其他模组的组合键不会再误开关 Meteor 模块。"
+}

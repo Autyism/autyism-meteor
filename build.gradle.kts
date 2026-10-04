@@ -64,3 +64,10 @@ if (providers.gradleProperty("amGameTest").isPresent) {
         }
     }
 }
+
+tasks.jar {
+    inputs.property("archivesName", base.archivesName)
+    from("LICENSE") {
+        rename { "${it}_${base.archivesName.get()}" }
+    }
+}
