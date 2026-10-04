@@ -212,6 +212,14 @@ public final class ReleaseBindsGameTest implements FabricClientGameTest {
             check("module off: release keeps it on", active(context, "auto-respawn"));
             context.runOnClient(c -> Modules.get().get(ReleaseBinds.class).enable());
             reset(context);
+
+            // 10) 发布页截图：Release Binds 的设置界面（先清掉测试留下的聊天消息）
+            context.runOnClient(c -> c.gui.getChat().clearMessages(false));
+            context.runOnClient(c -> c.setScreen(meteordevelopment.meteorclient.gui.GuiThemes.get().moduleScreen(Modules.get().get(ReleaseBinds.class))));
+            context.waitTicks(20);
+            context.takeScreenshot("meteor-release-binds-settings");
+            context.runOnClient(c -> c.setScreen(null));
+            context.waitTicks(3);
         }
         if (!failures.isEmpty()) throw new AssertionError("[release-binds] failed: " + failures);
         log("[release-binds] OK: all checks passed");
