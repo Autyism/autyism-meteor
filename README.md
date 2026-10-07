@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/icon.png" width="128" alt="icon"></p>
+<p align="center"><img src="docs/icon_transparent.png" width="156" alt="icon"></p>
 <h1 align="center">Autyism's Meteor Addon</h1>
 <p align="center">Meteor Client keybinds that fire when you let go, and stay quiet during other mods' key combinations.</p>
 <p align="center">Meteor Client 的快捷键改为松开时触发，其他模组的组合键不再误触 Meteor 模块。</p>
